@@ -1,4 +1,3 @@
-# Import required packages
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.service import Service
@@ -8,16 +7,12 @@ from webdriver_manager.chrome import ChromeDriverManager
 import time
 from bs4 import BeautifulSoup
 
-# Define the chromedriver service
 s = Service('chromedriver.exe')
 
-# Instantiate the webdriver
 driver = webdriver.Chrome(service=s)
 
-# The base URL for the pages to scrape
 page_URL = "https://leetcode.com/problemset/all/?page="
 
-# Function to get all the 'a' tags from a given URL
 def get_a_tags(url):
     driver.get(url)
     time.sleep(7)

@@ -1,4 +1,3 @@
-# Import required packages
 import os
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -9,11 +8,8 @@ from webdriver_manager.chrome import ChromeDriverManager
 import time
 from bs4 import BeautifulSoup
 
-# Define the chromedriver service
 s = Service('chromedriver.exe')
-# Instantiate the webdriver
 driver = webdriver.Chrome(service=s)
-# check heading_class is present or not first by document.querySelector("");, leetcode page's heading and body class changes day by day
 
 heading_class = ".mr-2.text-label-1"
 body_class = ".px-5.pt-4"
@@ -22,10 +18,8 @@ QDATA_FOLDER = "Qdata"
 
 
 def get_array_of_links():
-    arr = []  # Array to store the lines of the file
-# Open the file
+    arr = [] 
     with open("lc_problems.txt", "r") as file:
-        # Read each line one by one
         for line in file:
             arr.append(line)
     return arr
