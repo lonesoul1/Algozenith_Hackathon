@@ -1,5 +1,13 @@
 import math
+from flask import Flask
+from flask import jsonify
 
+from flask import Flask, render_template
+from flask_wtf import FlaskForm
+from wtforms import StringField, SubmitField
+from wtforms.validators import DataRequired
+
+app=Flask(__name__)
 def load_vocab():
     vocab = {}
     with open('tf-idf/vocab.txt', 'r') as f:
@@ -18,8 +26,8 @@ def load_documents():
         documents = f.readlines()
     documents = [document.strip().split() for document in documents]
 
-    print('Number of documents: ', len(documents))
-    print('Sample document: ', documents[0])
+    # print('Number of documents: ', len(documents))
+    # print('Sample document: ', documents[0])
     return documents
 
 def load_inverted_index():
@@ -32,7 +40,7 @@ def load_inverted_index():
         documents = inverted_index_terms[row_num+1].strip().split()
         inverted_index[term] = documents
     
-    print('Size of inverted index: ', len(inverted_index))
+    # print('Size of inverted index: ', len(inverted_index))
     return inverted_index
 
 
@@ -66,25 +74,57 @@ def calculate_sorted_order_of_documents(query_terms):
             continue
         tf_values_by_document = get_tf_dictionary(term)
         idf_value = get_idf_value(term)
-        print(term,tf_values_by_document,idf_value)
+        # print(term,tf_values_by_document,idf_value)
         for document in tf_values_by_document:
             if document not in potential_documents:
                 potential_documents[document] = tf_values_by_document[document] * idf_value
             potential_documents[document] += tf_values_by_document[document] * idf_value
 
-    print(potential_documents)
+    # print(potential_documents)
     # divide by the length of the query terms
     for document in potential_documents:
         potential_documents[document] /= len(query_terms)
 
     potential_documents = dict(sorted(potential_documents.items(), key=lambda item: item[1], reverse=True))
 
+    result = []
     for document_index in potential_documents:
-        print('Document: ', documents[int(document_index)], ' Score: ', potential_documents[document_index])
+        result.append((" ".join(documents[int(document_index)]), potential_documents[document_index]))
+
+    return result[:10:]
+#=======================================================================================================
+# query_string = input('Enter your query: ')
+# query_terms = [term.lower() for term in query_string.strip().split()]
+
+# print(query_terms)
+# result = calculate_sorted_order_of_documents(query_terms)
+# for document, score in result:
+#     print(document, "\nScore:", score)
+# print(result)
+
+#=======================================================================================================
+class SearchForm(FlaskForm):
+    query = StringField('Query', validators=[DataRequired()])
+    submit = SubmitField('Search')
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = 'your_secret_key'  # Set a secret key for CSRF protection
+@app.route('/', methods=['GET', 'POST'])
+def search():
+    form = SearchForm()
+    result = None
+
+    if form.validate_on_submit():
+        query_terms = [term.lower() for term in form.query.data.strip().split()]
+        result = calculate_sorted_order_of_documents(query_terms)
+
+    return render_template('index.html', form=form, result=result)
 
 
-query_string = input('Enter your query: ')
-query_terms = [term.lower() for term in query_string.strip().split()]
+@app.route("/")
 
-print(query_terms)
-calculate_sorted_order_of_documents(query_terms)
+def home():
+    return render_template('index.html',form=form,result=result)
+
+if __name__=="__main__":
+    app.run(debug=True)
